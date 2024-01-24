@@ -3,6 +3,8 @@
 namespace App\Entity;
 
 use App\Repository\RoomRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
@@ -15,7 +17,7 @@ class Room
     private ?int $id = null;
 
     #[ORM\Column(length: 50)]
-    private ?string $title = null;
+    private ?string $tilte = null;
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $description = null;
@@ -39,19 +41,30 @@ class Room
     #[ORM\JoinColumn(nullable: false)]
     private ?User $host = null;
 
+    #[ORM\Column(length: 50, nullable: true)]
+    private ?string $title = null;
+
+    #[ORM\ManyToMany(targetEntity: Equipment::class, mappedBy: 'rooms')]
+    private Collection $equipment;
+
+    public function __construct()
+    {
+        $this->equipment = new ArrayCollection();
+    }
+
     public function getId(): ?int
     {
         return $this->id;
     }
 
-    public function getTitle(): ?string
+    public function getTilte(): ?string
     {
-        return $this->title;
+        return $this->tilte;
     }
 
-    public function setTitle(string $title): static
+    public function setTilte(string $tilte): static
     {
-        $this->title = $title;
+        $this->tilte = $tilte;
 
         return $this;
     }
@@ -136,6 +149,45 @@ class Room
     public function setHost(?User $host): static
     {
         $this->host = $host;
+
+        return $this;
+    }
+
+    public function getTitle(): ?string
+    {
+        return $this->title;
+    }
+
+    public function setTitle(?string $title): static
+    {
+        $this->title = $title;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Equipment>
+     */
+    public function getEquipment(): Collection
+    {
+        return $this->equipment;
+    }
+
+    public function addEquipment(Equipment $equipment): static
+    {
+        if (!$this->equipment->contains($equipment)) {
+            $this->equipment->add($equipment);
+            $equipment->addRoom($this);
+        }
+
+        return $this;
+    }
+
+    public function removeEquipment(Equipment $equipment): static
+    {
+        if ($this->equipment->removeElement($equipment)) {
+            $equipment->removeRoom($this);
+        }
 
         return $this;
     }
